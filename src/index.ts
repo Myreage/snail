@@ -1,5 +1,7 @@
 type SnailCharacter = number | "blank";
 
+// y ↑
+// x ->
 export type Snail = SnailCharacter[][];
 
 type Direction = "left" | "right" | "bottom" | "up";
@@ -16,39 +18,48 @@ const mapNewDirection: Record<Direction, Direction> = {
   up: "right",
 };
 
-// example
+const getElement = (snail: Snail, coordinates: Coordinates) => {
+  return snail[coordinates.y][coordinates.x];
+};
 
-// 7  8  9  10
-// 6  1  2
-// 5  4  3
-//
-// ↑ y
-//  → x
+const getBottomElementCoordinates = (coordinates: Coordinates) => ({
+  x: coordinates.x,
+  y: coordinates.y + 1,
+});
 
-// tourner à droite:
-// - si dernier elt ligne: passer en dessous
-// - si premier elt ligne: passer au dessus
-// - sinon: passer a l'elt suivant dans la liste
+export const appendToBottom = (snail: Snail, coordinates: Coordinates, n: number) => {
+  const bottomElementCoordinates = getBottomElementCoordinates(coordinates);
 
-// [
-//     [1,2]
-// ]
+  if (snail[bottomElementCoordinates.y]) {
+    const updatedLine = snail[bottomElementCoordinates.y].map((element, index) => {
+      if (index === bottomElementCoordinates.x) {
+        return n;
+      }
+      return element;
+    });
 
-// [
-//     [1,2],
-//     ["blank", 3]
-// ]
-const appendToBottom = (snail: Snail, coordinates: Coordinates, n: number) => {
-  const newBottomLine = coordinates.y - 1 > 0 ? [...snail[coordinates.y - 1]] : [];
-  // rajouter l'elt à la fin si la liste existe
-  // fill avec des blanks si besoin
+    return snail.map((line, index) => {
+      if (index === bottomElementCoordinates.y) {
+        return updatedLine;
+      }
+      return line;
+    });
+  }
+
+  const newLine = snail[0].map((element, index) => {
+    if (index === coordinates.x) {
+      return n;
+    }
+    return "blank";
+  });
+  return [...snail, newLine];
 };
 
 const incrementSnail = ({
-  currentCoordinates,
-  currentDirection,
-  n,
-  snail,
+  currentCoordinates, // O;1
+  currentDirection, // "right"
+  n, //"3"
+  snail, // [[1,2]]
 }: {
   snail: Snail;
   n: number;
@@ -60,16 +71,31 @@ const incrementSnail = ({
 
   if (newDirection === "right") {
     newSnail[currentCoordinates.y].push(n);
+
+    return {
+      direction: n === 1 ? "up" : newDirection,
+      snail: newSnail,
+      coordinates: {
+        x: newSnail[currentCoordinates.y].length + 1,
+        y: currentCoordinates.y,
+      },
+    };
   }
 
-  return {
-    direction: n === 1 ? "up" : newDirection,
-    snail: newSnail,
-    coordinates: {
-      x: newSnail[currentCoordinates.y].length + 1,
-      y: currentCoordinates.y,
-    },
-  };
+  if (newDirection === "bottom") {
+    newSnail[1].push("blank");
+    newSnail[1].push(n);
+
+    return {
+      direction: n === 1 ? "up" : newDirection,
+      snail: newSnail,
+      coordinates: {
+        //1,2
+        x: currentCoordinates.x,
+        y: currentCoordinates.y + 1,
+      },
+    };
+  }
 };
 
 const snailRec = ({
