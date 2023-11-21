@@ -1,15 +1,6 @@
-type SnailCharacter = number | "blank";
-
-// y ↑
-// x ->
-export type Snail = SnailCharacter[][];
+import { Coordinates, Snail } from "./snailManipulation";
 
 type Direction = "left" | "right" | "bottom" | "up";
-
-type Coordinates = {
-  x: number;
-  y: number;
-};
 
 const mapNewDirection: Record<Direction, Direction> = {
   right: "bottom",
@@ -18,42 +9,10 @@ const mapNewDirection: Record<Direction, Direction> = {
   up: "right",
 };
 
-const getElement = (snail: Snail, coordinates: Coordinates) => {
-  return snail[coordinates.y][coordinates.x];
-};
-
 const getBottomElementCoordinates = (coordinates: Coordinates) => ({
   x: coordinates.x,
   y: coordinates.y + 1,
 });
-
-export const appendToBottom = (snail: Snail, coordinates: Coordinates, n: number) => {
-  const bottomElementCoordinates = getBottomElementCoordinates(coordinates);
-
-  if (snail[bottomElementCoordinates.y]) {
-    const updatedLine = snail[bottomElementCoordinates.y].map((element, index) => {
-      if (index === bottomElementCoordinates.x) {
-        return n;
-      }
-      return element;
-    });
-
-    return snail.map((line, index) => {
-      if (index === bottomElementCoordinates.y) {
-        return updatedLine;
-      }
-      return line;
-    });
-  }
-
-  const newLine = snail[0].map((element, index) => {
-    if (index === coordinates.x) {
-      return n;
-    }
-    return "blank";
-  });
-  return [...snail, newLine];
-};
 
 const incrementSnail = ({
   currentCoordinates, // O;1
