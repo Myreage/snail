@@ -1,8 +1,5 @@
-import { snail } from ".";
+export type SnailCharacter = number | "blank";
 
-type SnailCharacter = number | "blank";
-// y ↑
-// x ->
 export type Snail = SnailCharacter[][];
 
 export type Coordinates = {
@@ -10,22 +7,27 @@ export type Coordinates = {
   y: number;
 };
 
-const getBottomElementCoordinates = (coordinates: Coordinates) => ({
+export const getBottomElementCoordinates = (coordinates: Coordinates) => ({
   x: coordinates.x,
   y: coordinates.y + 1,
 });
 
-const getRightElementCoordinates = (coordinates: Coordinates) => ({
+export const getTopElementCoordinates = (coordinates: Coordinates) => ({
+  x: coordinates.x,
+  y: coordinates.y - 1,
+});
+
+export const getRightElementCoordinates = (coordinates: Coordinates) => ({
   x: coordinates.x + 1,
   y: coordinates.y,
 });
 
-const getLeftElementCoordinates = (coordinates: Coordinates) => ({
+export const getLeftElementCoordinates = (coordinates: Coordinates) => ({
   x: coordinates.x - 1,
   y: coordinates.y,
 });
 
-const appendToEndOfLine = (snail: Snail, lineIndex: number, n: number): Snail => {
+const appendToEndOfLine = ({ lineIndex, n, snail }: { snail: Snail; lineIndex: number; n: number }): Snail => {
   const newSnail = snail.map((line, index) => {
     if (index === lineIndex) {
       return [...line, n];
@@ -36,7 +38,7 @@ const appendToEndOfLine = (snail: Snail, lineIndex: number, n: number): Snail =>
   return newSnail;
 };
 
-const appendToBeginningOfLine = (snail: Snail, lineIndex: number, n: number): Snail => {
+const appendToBeginningOfLine = ({ lineIndex, n, snail }: { snail: Snail; lineIndex: number; n: number }): Snail => {
   const newSnail = snail.map((line, index) => {
     if (index === lineIndex) {
       return [n, ...line];
@@ -47,7 +49,7 @@ const appendToBeginningOfLine = (snail: Snail, lineIndex: number, n: number): Sn
   return newSnail;
 };
 
-const writeNumber = (snail: Snail, coordinates: Coordinates, n: number): Snail => {
+const writeNumber = ({ coordinates, n, snail }: { snail: Snail; coordinates: Coordinates; n: number }): Snail => {
   const updatedLine = snail[coordinates.y].map((element, index) => {
     if (index === coordinates.x) {
       return n;
@@ -65,7 +67,7 @@ const writeNumber = (snail: Snail, coordinates: Coordinates, n: number): Snail =
   return updatedSnail;
 };
 
-const appendToNewLine = (snail: Snail, n: number): Snail => {
+const appendToEndOfNewLine = (snail: Snail, n: number): Snail => {
   const lineLength = snail[0].length;
 
   const newLine = snail[0].map((element, index) => {
@@ -77,15 +79,25 @@ const appendToNewLine = (snail: Snail, n: number): Snail => {
   return [...snail, newLine];
 };
 
+const appendToBeginningOfNewLine = (snail: Snail, n: number): Snail => {
+  const newLine = snail[0].map((_element, index) => {
+    if (index === 0) {
+      return n;
+    }
+    return "blank";
+  });
+  return [newLine, ...snail];
+};
+
 export const appendToRight = (snail: Snail, coordinates: Coordinates, n: number) => {
   const rightElementCoordinates = getRightElementCoordinates(coordinates);
 
   if (rightElementCoordinates.x > snail[0].length - 1) {
-    const newSnail = appendToEndOfLine(snail, rightElementCoordinates.y, n);
+    const newSnail = appendToEndOfLine({ snail, lineIndex: rightElementCoordinates.y, n });
     return newSnail;
   }
 
-  const updatedSnail = writeNumber(snail, rightElementCoordinates, n);
+  const updatedSnail = writeNumber({ snail, coordinates: rightElementCoordinates, n });
 
   return updatedSnail;
 };
@@ -94,10 +106,10 @@ export const appendToLeft = (snail: Snail, coordinates: Coordinates, n: number) 
   const leftElementCoordinates = getLeftElementCoordinates(coordinates);
 
   if (leftElementCoordinates.x === -1) {
-    return appendToBeginningOfLine(snail, leftElementCoordinates.y, n);
+    return appendToBeginningOfLine({ snail, lineIndex: leftElementCoordinates.y, n });
   }
 
-  const updatedSnail = writeNumber(snail, leftElementCoordinates, n);
+  const updatedSnail = writeNumber({ snail, coordinates: leftElementCoordinates, n });
 
   return updatedSnail;
 };
@@ -107,8 +119,18 @@ export const appendToBottom = (snail: Snail, coordinates: Coordinates, n: number
   const bottomLine = snail[bottomElementCoordinates.y];
 
   if (bottomLine) {
-    return writeNumber(snail, bottomElementCoordinates, n);
+    return writeNumber({ snail, coordinates: bottomElementCoordinates, n });
   }
 
-  return appendToNewLine(snail, n);
+  return appendToEndOfNewLine(snail, n);
+};
+
+export const appendToTop = (snail: Snail, coordinates: Coordinates, n: number) => {
+  const topElementCoordinates = getTopElementCoordinates(coordinates);
+
+  if (topElementCoordinates.y < 0) {
+    return appendToBeginningOfNewLine(snail, n);
+  }
+
+  return writeNumber({ snail, coordinates: topElementCoordinates, n });
 };
